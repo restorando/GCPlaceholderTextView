@@ -8,9 +8,8 @@
 
 #import "GCPlaceholderTextView.h"
 
-@interface GCPlaceholderTextView () 
+@interface GCPlaceholderTextView ()
 
-@property (nonatomic, retain) UIColor* realTextColor;
 @property (nonatomic, readonly) NSString* realText;
 
 - (void) beginEditing:(NSNotification*) notification;
@@ -105,7 +104,7 @@
         super.text = [[self realText] substringToIndex:1];
         self.textColor = self.realTextColor;
     }
-
+    
 }
 
 
@@ -119,7 +118,7 @@
 - (void) setTextColor:(UIColor *)textColor {
     if ([self.realText isEqualToString:self.placeholder]) {
         if ([textColor isEqual:self.placeholderColor]){
-             [super setTextColor:textColor];
+            [super setTextColor:textColor];
         } else {
             self.realTextColor = textColor;
         }
@@ -143,6 +142,8 @@
 - (void)dealloc {
     [realTextColor release];
     [placeholder release];
+    [placeholderColor release];
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     [super dealloc];

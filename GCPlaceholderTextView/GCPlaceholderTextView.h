@@ -9,11 +9,11 @@
 #import <UIKit/UIKit.h>
 
 
-@interface GCPlaceholderTextView : UITextView 
+@interface GCPlaceholderTextView : UITextView
 
-@property(nonatomic, strong) NSString *placeholder;
+@property(nonatomic, retain) NSString *placeholder;
 
-@property (nonatomic, strong) UIColor *realTextColor UI_APPEARANCE_SELECTOR;
-@property (nonatomic, strong) UIColor *placeholderColor UI_APPEARANCE_SELECTOR;
+@property (nonatomic, retain) UIColor *realTextColor UI_APPEARANCE_SELECTOR;
+@property (nonatomic, retain) UIColor *placeholderColor UI_APPEARANCE_SELECTOR;
 
 @end
