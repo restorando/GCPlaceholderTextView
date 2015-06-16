@@ -10,10 +10,14 @@
 
 @interface GCPlaceholderTextView () 
 
-@property (unsafe_unretained, nonatomic, readonly) NSString* realText;
+@property (nonatomic, retain) UIColor* realTextColor;
+@property (nonatomic, readonly) NSString* realText;
 
 - (void) beginEditing:(NSNotification*) notification;
 - (void) endEditing:(NSNotification*) notification;
+- (void) changeEditing:(NSNotification*) notification;
+
+@property(nonatomic, assign) BOOL isChanged;
 
 @end
 
@@ -36,9 +40,12 @@
 - (void)awakeFromNib {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(beginEditing:) name:UITextViewTextDidBeginEditingNotification object:self];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(endEditing:) name:UITextViewTextDidEndEditingNotification object:self];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(changeEditing:) name:UITextViewTextDidChangeNotification object:self];
     
-    self.realTextColor = self.textColor;
+    self.realTextColor = [UIColor blackColor];
     self.placeholderColor = [UIColor lightGrayColor];
+    
+    self.isChanged = NO;
 }
 
 #pragma mark -
@@ -48,20 +55,11 @@
     if ([self.realText isEqualToString:placeholder] && ![self isFirstResponder]) {
         self.text = aPlaceholder;
     }
-    if (aPlaceholder != placeholder) {
-        placeholder = aPlaceholder;
-    }
     
+    [placeholder release];
+    placeholder = [aPlaceholder retain];
     
     [self endEditing:nil];
-}
-
-- (void)setPlaceholderColor:(UIColor *)aPlaceholderColor {
-    placeholderColor = aPlaceholderColor;
-    
-    if ([super.text isEqualToString:self.placeholder]) {
-        self.textColor = self.placeholderColor;
-    }
 }
 
 - (NSString *) text {
@@ -71,14 +69,14 @@
 }
 
 - (void) setText:(NSString *)text {
-    if (([text isEqualToString:@""] || text == nil) && ![self isFirstResponder]) {
+    if ([text isEqualToString:@""] || text == nil) {
         super.text = self.placeholder;
     }
     else {
         super.text = text;
     }
     
-    if ([text isEqualToString:self.placeholder] || text == nil) {
+    if ([text isEqualToString:self.placeholder]) {
         self.textColor = self.placeholderColor;
     }
     else {
@@ -92,10 +90,24 @@
 
 - (void) beginEditing:(NSNotification*) notification {
     if ([self.realText isEqualToString:self.placeholder]) {
-        super.text = nil;
+        [self setCursorToBeginingText];
+    }
+    
+}
+- (void) changeEditing:(NSNotification*) notification {
+    
+    if ([self.realText isEqualToString:@""] || self.realText == nil) {
+        super.text = self.placeholder;
+        self.textColor = self.placeholderColor;
+        [self setCursorToBeginingText];
+        self.isChanged = NO;
+    } else if ([[[self realText] substringFromIndex:1] isEqualToString:self.placeholder]) {
+        super.text = [[self realText] substringToIndex:1];
         self.textColor = self.realTextColor;
     }
+
 }
+
 
 - (void) endEditing:(NSNotification*) notification {
     if ([self.realText isEqualToString:@""] || self.realText == nil) {
@@ -118,12 +130,22 @@
     }
 }
 
+- (void)setCursorToBeginingText {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self.selectedRange = NSMakeRange(0, 0);
+    });
+}
+
+
 #pragma mark -
 #pragma mark Dealloc
 
 - (void)dealloc {
+    [realTextColor release];
+    [placeholder release];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
+    [super dealloc];
 }
 
 @end
